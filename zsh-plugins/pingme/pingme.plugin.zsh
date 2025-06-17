@@ -11,6 +11,15 @@
 # export ZSH_PINGME_VERBOSE=1
 : "${ZSH_PINGME_VERBOSE:=}"
 
+# --- Excluded Commands ---
+# Define a list of commands that should not trigger notifications.
+# Users can override this in their .zshrc. For example:
+# ZSH_PINGME_EXCLUDED_COMMANDS=("vi" "nano" "my_custom_tool")
+# Initialize with defaults only if not already set by the user.
+if (( ! ${+ZSH_PINGME_EXCLUDED_COMMANDS} )); then
+  ZSH_PINGME_EXCLUDED_COMMANDS=(vi vim nano emacs tmux less more man)
+fi
+
 # For Telegram notifications, you need to set the following environment variables:
 # export TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
 # export TELEGRAM_CHAT_ID="YOUR_TELEGRAM_CHAT_ID"
@@ -18,8 +27,42 @@
 # --- Helper Functions ---
 _zsh_pingme_verbose_print() {
     if [[ -n "$ZSH_PINGME_VERBOSE" ]]; then
-        print -r -- "%F{cyan}[PingMe Verbose]%f $1" >&2
+        print -r -- "[PingMe Verbose] $1" >&2
     fi
+}
+
+_zsh_pingme_extract_base_command() {
+    local full_command_string="$1"
+    local base_command
+    local parts
+    # zsh array splitting from string by spaces.
+    parts=(${(s: :)full_command_string})
+
+    if [[ ${#parts[@]} -eq 0 ]]; then
+        _zsh_pingme_verbose_print "extract_base_command: Command string was empty or all spaces."
+        base_command=""
+    elif [[ "${parts[1]}" == "sudo" && ${#parts[@]} -gt 1 ]]; then
+        base_command="${parts[2]}"
+    elif [[ "${parts[1]}" == "env" && ${#parts[@]} -gt 1 ]]; then
+        local cmd_idx=2
+        while [[ $cmd_idx -le ${#parts[@]} && ( "${parts[$cmd_idx]}" == *=* || "${parts[$cmd_idx]}" == -* ) ]]; do
+            ((cmd_idx++))
+        done
+        if [[ $cmd_idx -le ${#parts[@]} ]]; then
+            base_command="${parts[$cmd_idx]}"
+        else
+            base_command="env"
+        fi
+    else
+        base_command="${parts[1]}"
+    fi
+
+    if [[ -n "$base_command" ]]; then
+        base_command="${base_command##*/}"
+    fi
+    
+    _zsh_pingme_verbose_print "extract_base_command: Extracted base command: \'${base_command}\' from \'${full_command_string}\'"
+    echo "$base_command"
 }
 
 # --- Globals ---
@@ -58,6 +101,24 @@ zsh_pingme_preexec() {
 # Executed before each prompt is displayed (after a command has finished).
 zsh_pingme_precmd() {
     _zsh_pingme_verbose_print "precmd: Entered. Monitored command: '${_zsh_pingme_command_string}', start_time: ${_zsh_pingme_start_time}"
+
+    local base_command
+    base_command=$(_zsh_pingme_extract_base_command "$_zsh_pingme_command_string")
+    _zsh_pingme_verbose_print "precmd: Base command: '${base_command}'"
+
+    # Check if the base command is in the excluded list.
+    if (( ${#ZSH_PINGME_EXCLUDED_COMMANDS[@]} > 0 )); then
+        for excluded_command in "${ZSH_PINGME_EXCLUDED_COMMANDS[@]}"; do
+            if [[ "$base_command" == "$excluded_command" ]]; then
+                _zsh_pingme_verbose_print "precmd: Command '${base_command}' is in the excluded list. Skipping."
+                # Reset variables and exit.
+                _zsh_pingme_start_time=
+                _zsh_pingme_command_string=
+                return
+            fi
+        done
+    fi
+
     if [[ -n "$_zsh_pingme_start_time" && -n "$_zsh_pingme_command_string" ]]; then
         local cmd_end_time=$EPOCHSECONDS
         local cmd_duration=$((cmd_end_time - _zsh_pingme_start_time))

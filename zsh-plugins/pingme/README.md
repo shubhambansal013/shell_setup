@@ -1,59 +1,63 @@
 # PingMe Zsh Plugin
 
-Zsh plugin to enhance your terminal experience by providing auditory and Telegram notifications for command completion.
-
-## Features
-
-*   **Terminal Bell:** Rings the terminal bell after every command finishes.
-*   **Telegram Notifications for Long Commands:** Sends a Telegram message when a command's execution time meets or exceeds a configurable duration.
+Zsh plugin to ring a terminal bell and send a Telegram notification for long-running commands.
 
 ## Installation
 
-1.  Place the `pingme` directory (containing `pingme.plugin.zsh`) into your Oh My Zsh custom plugins directory (e.g., `$ZSH_CUSTOM/plugins/pingme`).
-    If you are storing it at a different custom path, ensure `ZSH_CUSTOM` is set appropriately in your `.zshrc` before Oh My Zsh is sourced. For example, if your plugin is at `$HOME/experimental/users/your_user/plugins/pingme/pingme.plugin.zsh`, set:
-    ```zsh
-    export ZSH_CUSTOM=$HOME/experimental/users/your_user
-    ```
-2.  Add `pingme` to the `plugins=(...)` list in your `.zshrc` file.
+1.  Clone this repository or download the `pingme.plugin.zsh` file.
+2.  Source the `pingme.plugin.zsh` file in your `.zshrc` file:
 
     ```zsh
-    plugins=(
-        # other plugins
-        pingme
-    )
+    source /path/to/pingme.plugin.zsh
     ```
 
 ## Configuration
 
-### Notification Duration (Required for Telegram)
+You can configure the plugin by setting the following environment variables in your `.zshrc` **before** sourcing the plugin:
 
-*   `ZSH_PINGME_DURATION`: Minimum duration (in seconds) for a command to be considered "long-running" to trigger a Telegram notification. Defaults to `1` second.
-    Set this **before** sourcing Oh My Zsh / loading the plugin in your `.zshrc`:
+*   `ZSH_PINGME_DURATION`: The minimum duration (in seconds) for a command to be considered long-running.
+    Default: `10`
+    Example:
     ```zsh
-    export ZSH_PINGME_DURATION=30 # Notify for commands running 30s or longer
+    export ZSH_PINGME_DURATION=30
     ```
 
-### Telegram Setup (Required for Telegram)
+*   `ZSH_PINGME_VERBOSE`: Set to `1` to enable verbose logging for debugging.
+    Default: Disabled
+    Example:
+    ```zsh
+    export ZSH_PINGME_VERBOSE=1
+    ```
 
-To receive Telegram notifications, you **must** set the following environment variables in your `.zshrc` (or similar shell configuration file):
+*   `ZSH_PINGME_EXCLUDED_COMMANDS`: An array of commands that should not trigger notifications. The comparison is done against the base command (e.g., `vim` for `sudo vim`).
+    Default: `(vi vim nano emacs tmux less more man)`
+    Example:
+    ```zsh
+    export ZSH_PINGME_EXCLUDED_COMMANDS=("vi" "nano" "my_custom_tool")
+    ```
+
+### Telegram Notifications
+
+To enable Telegram notifications, you also need to set the following environment variables:
 
 *   `TELEGRAM_BOT_TOKEN`: Your Telegram Bot Token.
-*   `TELEGRAM_CHAT_ID`: The Chat ID where the bot should send messages.
+*   `TELEGRAM_CHAT_ID`: Your Telegram Chat ID.
 
-    ```zsh
-    export TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
-    export TELEGRAM_CHAT_ID="YOUR_TELEGRAM_CHAT_ID"
-    ```
-
-## Usage
-
-*   **Automatic:** The plugin works automatically after installation and configuration. A bell will sound after each command. If a command runs longer than `ZSH_PINGME_DURATION`, a Telegram message will be sent.
+Example:
+```zsh
+export TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
+export TELEGRAM_CHAT_ID="YOUR_TELEGRAM_CHAT_ID"
+```
 
 ## How it Works
 
-The plugin uses Zsh's `preexec` and `precmd` hooks:
+The plugin uses Zsh's `preexec` and `precmd` hook functions:
 
-*   `preexec`: Records the start time and the command string just before a command is executed.
-*   `precmd`: Executed after a command finishes. It calculates the duration. 
-    *   It always rings the terminal bell.
-    *   If the duration is greater than or equal to `ZSH_PINGME_DURATION`, it sends a Telegram notification.
+*   `preexec`: Executed before a command line is executed. It records the start time and the command string.
+*   `precmd`: Executed before each prompt is displayed (after a command has finished). It calculates the command's duration. If the duration exceeds `ZSH_PINGME_DURATION` and the command is not in `ZSH_PINGME_EXCLUDED_COMMANDS`:
+    *   A Telegram notification is sent (if configured).
+    *   The terminal bell is rung.
+
+## Troubleshooting
+
+If you encounter issues, enable verbose mode (`export ZSH_PINGME_VERBOSE=1`) and check the output in your terminal. This can help identify problems with configuration or script execution.

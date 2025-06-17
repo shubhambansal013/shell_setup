@@ -5,7 +5,7 @@
 # Default to 1 second. Users can override this in their .zshrc by setting
 # ZSH_PINGME_DURATION before sourcing this plugin. For example:
 # export ZSH_PINGME_DURATION=30
-: "${ZSH_PINGME_DURATION:=10}"
+: "${ZSH_PINGME_DURATION:=20}"
 
 # Set to enable verbose mode.
 # export ZSH_PINGME_VERBOSE=1

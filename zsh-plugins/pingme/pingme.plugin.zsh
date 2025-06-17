@@ -65,6 +65,25 @@ _zsh_pingme_extract_base_command() {
     echo "$base_command"
 }
 
+# Formats seconds into a string like: 1h 23m 45s or 45m 0s or 30s
+_zsh_pingme_format_duration() {
+    local total_seconds=$1
+    local hours=$((total_seconds / 3600))
+    local minutes=$(( (total_seconds % 3600) / 60 ))
+    local seconds=$((total_seconds % 60))
+    local formatted_duration=""
+
+    if (( hours > 0 )); then
+        formatted_duration="${hours}h "
+    fi
+    if (( minutes > 0 )); then
+        formatted_duration="${formatted_duration}${minutes}m "
+    fi
+    formatted_duration="${formatted_duration}${seconds}s"
+
+    echo "$formatted_duration"
+}
+
 # --- Globals ---
 # Start time (in EPOCHSECONDS) of the command being executed.
 _zsh_pingme_start_time=
@@ -127,7 +146,9 @@ zsh_pingme_precmd() {
         # Send a notification if the command duration exceeds the threshold.
         if (( cmd_duration >= ZSH_PINGME_DURATION )); then
             _zsh_pingme_verbose_print "precmd: Command met threshold. Sending Telegram notification."
-            local telegram_message="Cmd finished \[${cmd_duration}s]: ${_zsh_pingme_command_string}"
+            
+            local formatted_duration=$(_zsh_pingme_format_duration "$cmd_duration")
+            local telegram_message="Cmd finished \[${formatted_duration}]: ${_zsh_pingme_command_string}"
             _zsh_pingme_send_telegram_notification "${telegram_message}"
         fi
         _zsh_pingme_verbose_print "precmd: Ringing bell."

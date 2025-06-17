@@ -127,19 +127,15 @@ autoload -Uz compinit && compinit -i
 alias lr="./experimental/users/bansalshubham/logrotate/logrotate.sh"
 alias d="tmx2 detach"
 # Function to attach to a tmux session
-my_tmux_work() {
+tm() {
   local session_name="${1:-Ram}" # Use a default name if none is provided
   tmx2 new -A -s "$session_name"
 }
 
 # Automatically attach to the session when SSHing
 if [[ $- =~ i ]] && [[ -z "$TMUX" ]] && [[ -n "$SSH_TTY" ]]; then
-  my_tmux_work
+  tm
 fi
-
-# Alias for quick access
-alias tm="my_tmux_work" # Or any alias you prefer
-
 
 if [[ -f /etc/bash_completion.d/g4d ]]; then
   . /etc/bash_completion.d/p4
@@ -154,7 +150,7 @@ fi
 source /usr/share/doc/fzf/examples/key-bindings.zsh
 source /usr/share/doc/fzf/examples/completion.zsh
 
-export ZSH_PINGME_EXCLUDED_COMMANDS=("vi" "vim" "nano" "emacs" "tmux" "less" "more" "man" "span" "boq")
+export ZSH_PINGME_EXCLUDED_COMMANDS=("vi" "vim" "nano" "emacs" "tmux" "less" "more" "man" "tm" "span" "boq" )
 
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.

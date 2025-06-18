@@ -103,21 +103,32 @@ else
   echo "ERROR: $TMUX_CONF_SOURCE not found. Skipping."
 fi
 
-# 7. Pingme plugin
-# ----------------
-# The 'pingme' plugin seems to be custom.
-# Ensure it is correctly placed in $ZSH_CUSTOM_PLUGINS_DIR/pingme
-# or one of the standard Oh My Zsh plugin directories.
-# If it's a script, ensure it's executable and in your $PATH or sourced correctly.
-print_message "Regarding 'pingme' plugin:"
-echo "Ensure the 'pingme' plugin is correctly installed/configured."
-echo "If it's a custom plugin, place it in: $ZSH_CUSTOM_PLUGINS_DIR/pingme"
+# 7. Install custom Pingme plugin
+# -------------------------------
+PINGME_PLUGIN_SOURCE_DIR="$SCRIPT_DIR/zsh-plugins/pingme"
+PINGME_PLUGIN_SOURCE_FILE="$PINGME_PLUGIN_SOURCE_DIR/pingme.plugin.zsh"
+PINGME_PLUGIN_TARGET_DIR="$ZSH_CUSTOM_PLUGINS_DIR/pingme"
+PINGME_PLUGIN_TARGET_FILE="$PINGME_PLUGIN_TARGET_DIR/pingme.plugin.zsh"
+
+print_message "Installing custom Pingme plugin..."
+
+if [ -f "$PINGME_PLUGIN_SOURCE_FILE" ]; then
+  mkdir -p "$PINGME_PLUGIN_TARGET_DIR"
+  if [ -L "$PINGME_PLUGIN_TARGET_FILE" ] && [ "$(readlink "$PINGME_PLUGIN_TARGET_FILE")" = "$PINGME_PLUGIN_SOURCE_FILE" ]; then
+    echo "Pingme plugin is already correctly symlinked."
+  else
+    rm -f "$PINGME_PLUGIN_TARGET_FILE" # Remove existing file/symlink
+    ln -s "$PINGME_PLUGIN_SOURCE_FILE" "$PINGME_PLUGIN_TARGET_FILE"
+    echo "Pingme plugin symlinked to $PINGME_PLUGIN_TARGET_FILE"
+  fi
+else
+  echo "ERROR: Pingme plugin source file not found at $PINGME_PLUGIN_SOURCE_FILE. Skipping."
+fi
 
 # 8. Source .zshrc
 # ----------------
 print_message "Setup complete!"
 echo "Please source your .zshrc file to apply changes, or open a new terminal:"
 echo "source ~/.zshrc"
-
 echo "Shell setup script finished."
 

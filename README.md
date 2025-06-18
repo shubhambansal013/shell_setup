@@ -22,7 +22,7 @@ The `setup.sh` script automates the installation and configuration of the follow
 -   **Zsh Plugins**:
     -   **[zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)**: Suggests commands as you type based on history and completions.
     -   **[zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)**: Provides syntax highlighting for the command line.
-    -   **Custom `pingme` plugin**: A local plugin for notifications.
+    -   **Custom `pingme` plugin**: A local plugin for notifications. The setup script also makes the interactive configuration script (`pingme_configure.zsh`) available.
 
 ## Configuration Files
 

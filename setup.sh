@@ -105,23 +105,40 @@ fi
 # 7. Install custom Pingme plugin
 # -------------------------------
 PINGME_PLUGIN_SOURCE_DIR="$SCRIPT_DIR/zsh-plugins/pingme"
-PINGME_PLUGIN_SOURCE_FILE="$PINGME_PLUGIN_SOURCE_DIR/pingme.plugin.zsh"
 PINGME_PLUGIN_TARGET_DIR="$ZSH_CUSTOM_PLUGINS_DIR/pingme"
-PINGME_PLUGIN_TARGET_FILE="$PINGME_PLUGIN_TARGET_DIR/pingme.plugin.zsh"
 
 print_message "Installing custom Pingme plugin..."
+mkdir -p "$PINGME_PLUGIN_TARGET_DIR"
 
+# Symlink the main plugin file
+PINGME_PLUGIN_SOURCE_FILE="$PINGME_PLUGIN_SOURCE_DIR/pingme.plugin.zsh"
+PINGME_PLUGIN_TARGET_FILE="$PINGME_PLUGIN_TARGET_DIR/pingme.plugin.zsh"
 if [ -f "$PINGME_PLUGIN_SOURCE_FILE" ]; then
-  mkdir -p "$PINGME_PLUGIN_TARGET_DIR"
   if [ -L "$PINGME_PLUGIN_TARGET_FILE" ] && [ "$(readlink "$PINGME_PLUGIN_TARGET_FILE")" = "$PINGME_PLUGIN_SOURCE_FILE" ]; then
     echo "Pingme plugin is already correctly symlinked."
   else
-    rm -f "$PINGME_PLUGIN_TARGET_FILE" # Remove existing file/symlink
+    rm -f "$PINGME_PLUGIN_TARGET_FILE"
     ln -s "$PINGME_PLUGIN_SOURCE_FILE" "$PINGME_PLUGIN_TARGET_FILE"
     echo "Pingme plugin symlinked to $PINGME_PLUGIN_TARGET_FILE"
   fi
 else
-  echo "ERROR: Pingme plugin source file not found at $PINGME_PLUGIN_SOURCE_FILE. Skipping."
+  echo "ERROR: Pingme plugin source not found at $PINGME_PLUGIN_SOURCE_FILE. Skipping."
+fi
+
+# Symlink the interactive configuration script
+PINGME_CONFIGURE_SOURCE_FILE="$PINGME_PLUGIN_SOURCE_DIR/pingme_configure.zsh"
+PINGME_CONFIGURE_TARGET_FILE="$PINGME_PLUGIN_TARGET_DIR/pingme_configure.zsh"
+if [ -f "$PINGME_CONFIGURE_SOURCE_FILE" ]; then
+  if [ -L "$PINGME_CONFIGURE_TARGET_FILE" ] && [ "$(readlink "$PINGME_CONFIGURE_TARGET_FILE")" = "$PINGME_CONFIGURE_SOURCE_FILE" ]; then
+    echo "Pingme configure script is already correctly symlinked."
+  else
+    rm -f "$PINGME_CONFIGURE_TARGET_FILE"
+    ln -s "$PINGME_CONFIGURE_SOURCE_FILE" "$PINGME_CONFIGURE_TARGET_FILE"
+    echo "Pingme configure script symlinked to $PINGME_CONFIGURE_TARGET_FILE"
+  fi
+else
+  # This is not a fatal error, just a missing feature.
+  echo "WARN: Pingme configure script not found at $PINGME_CONFIGURE_SOURCE_FILE. Skipping."
 fi
 
 # 8. Source .zshrc

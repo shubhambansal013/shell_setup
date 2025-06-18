@@ -44,9 +44,30 @@ If you wish to install this plugin manually:
 
 ## Configuration
 
-All configuration is done via environment variables. For best results, define these in your `.zshrc` **before** the line that sources your plugins.
+Configuration is straightforward. For basic settings, you can define variables in your `.zshrc`. For Telegram notifications, the plugin includes an interactive configuration script.
 
-### General Configuration
+### Interactive Configuration (Recommended for Telegram)
+
+To get started with Telegram notifications, run the interactive setup script. This is the easiest and most secure way to configure your credentials.
+
+1.  **Source the Configuration Script**:
+    From your terminal, run the following command. Make sure to replace `/path/to/` with the actual path to the `pingme` plugin directory.
+    ```zsh
+    source /path/to/pingme/pingme_configure.zsh
+    ```
+
+2.  **Follow the Prompts**:
+    The script will ask for your Telegram Bot Token and Chat ID. It will automatically create a `~/.pingme.env` file to store them securely. The PingMe plugin will automatically load this file.
+
+3.  **Restart Your Shell**:
+    For the changes to take effect, open a new terminal or source the new environment file:
+    ```zsh
+    source ~/.pingme.env
+    ```
+
+### Manual Configuration
+
+If you prefer to configure the plugin manually, you can set the following environment variables in your `.zshrc` or another shell startup file.
 
 -   `ZSH_PINGME_DURATION`: The minimum execution time (in seconds) for a command to trigger a notification.
     -   **Default**: `20`
@@ -56,24 +77,21 @@ All configuration is done via environment variables. For best results, define th
     -   **Default**: `(vi vim nano emacs tmux less more man)`
     -   **Example**: `export ZSH_PINGME_EXCLUDED_COMMANDS=("vi" "nano" "git commit")`
 
-### Telegram Notifications
-
-To receive notifications via Telegram, you must provide your bot token and chat ID.
-
-**Security Note**: To avoid committing secrets to version control, it is strongly recommended to export these variables from a file that is not tracked by Git, such as `~/.zshenv`.
-
--   `TELEGRAM_BOT_TOKEN`: Your Telegram bot's API token.
--   `TELEGRAM_CHAT_ID`: The chat ID where the bot should send messages.
-
-**Example (in `~/.zshenv`)**:
-```zsh
-export TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
-export TELEGRAM_CHAT_ID="YOUR_TELEGRAM_CHAT_ID"
-```
+-   `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`: If you are not using the interactive setup, you can define these manually. It is strongly recommended to place them in a file that is not tracked by Git, such as `~/.pingme.env`.
+    ```zsh
+    # In ~/.pingme.env
+    export TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
+    export TELEGRAM_CHAT_ID="YOUR_TELEGRAM_CHAT_ID"
+    ```
+    Then, ensure your `.zshrc` sources this file:
+    ```zsh
+    # In ~/.zshrc
+    [[ -f "~/.pingme.env" ]] && source "~/.pingme.env"
+    ```
 
 ### Debugging
 
--   `ZSH_PINGME_VERBOSE`: Set to `1` to enable detailed logging. This is useful for troubleshooting.
+-   `ZSH_PINGME_VERBOSE`: Set to `1` to enable detailed logging, which is useful for troubleshooting.
     -   **Default**: Disabled
     -   **Example**: `export ZSH_PINGME_VERBOSE=1`
 

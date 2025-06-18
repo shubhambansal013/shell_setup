@@ -1,5 +1,16 @@
 # Zsh plugin to ring a terminal bell and send a Telegram notification for
 # long-running commands.
+#
+# To set up Telegram notifications, source the interactive configuration script:
+#   source /path/to/pingme_configure.zsh
+#
+# This will guide you through creating a ~/.pingme.env file with your
+# Telegram credentials. The plugin will automatically source this file if it exists.
+
+# Source environment variables from ~/.pingme.env if it exists.
+if [[ -f "${ZDOTDIR:-$HOME}/.pingme.env" ]]; then
+  source "${ZDOTDIR:-$HOME}/.pingme.env"
+fi
 
 # --- Configuration ---
 # Default to 1 second. Users can override this in their .zshrc by setting

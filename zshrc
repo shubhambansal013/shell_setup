@@ -131,6 +131,9 @@ tm() {
   tmx2 new -A -s "$session_name"
 }
 
+# Alias to run the PingMe interactive configuration
+alias pingme_configure="source \"${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/pingme/pingme_configure.zsh\""
+
 # Automatically attach to the session when SSHing
 if [[ $- =~ i ]] && [[ -z "$TMUX" ]] && [[ -n "$SSH_TTY" ]]; then
   tm

@@ -12,8 +12,10 @@ LOGROTATE_VERBOSE="${LOGROTATE_VERBOSE:-false}"
 LOGROTATE_CHECK_INTERVAL="${LOGROTATE_CHECK_INTERVAL:-60}"
 # ---------------------
 
+# --- Argument Parsing ---
 if [ "$#" -lt 2 ]; then
-    echo "Usage: $0 <log_file_path> <command> [command_args]"
+    echo "Usage: $0 <base_log_file_path> <command> [command_args]"
+    echo "A unique log file will be created by appending a timestamp to the base log file path."
     echo "Example: $0 /tmp/ping_google.log ping -c 300 google.com"
     exit 1
 fi
@@ -23,6 +25,20 @@ shift
 COMMAND_TO_RUN="$1"
 shift
 COMMAND_ARGS=("$@")
+
+# Modify the log file path to include a timestamp.
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+LOG_FILE_DIR=$(dirname "$LOG_FILE_PATH")
+LOG_FILE_BASENAME=$(basename "$LOG_FILE_PATH")
+
+if [[ "$LOG_FILE_BASENAME" == *.* ]]; then
+    FILENAME="${LOG_FILE_BASENAME%.*}"
+    EXTENSION="${LOG_FILE_BASENAME##*.}"
+    LOG_FILE_PATH="${LOG_FILE_DIR}/${FILENAME}_${TIMESTAMP}.${EXTENSION}"
+else
+    LOG_FILE_PATH="${LOG_FILE_PATH}_${TIMESTAMP}"
+fi
+echo "Unique log file will be created at: ${LOG_FILE_PATH}"
 
 # Determine the directory of this script to find the template logrotate.conf
 CMD_PID=""

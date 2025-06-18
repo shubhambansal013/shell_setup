@@ -120,7 +120,6 @@ source $ZSH/oh-my-zsh.sh
 zstyle ':completion:*' menu yes select
 zstyle ':completion::complete:*' use-cache 1        #enables completion caching
 zstyle ':completion::complete:*' cache-path ~/.zsh/cache
-zstyle ':completion:*' users root $USER             #fix lag in google3
 autoload -Uz compinit && compinit -i
 
 export SHELL_SETUP_DIR="$(dirname "$(readlink -f "${(%):-%x}")")"
@@ -137,16 +136,26 @@ if [[ $- =~ i ]] && [[ -z "$TMUX" ]] && [[ -n "$SSH_TTY" ]]; then
   tm
 fi
 
-if [[ -f /etc/bash_completion.d/g4d ]]; then
-  . /etc/bash_completion.d/p4
-  . /etc/bash_completion.d/g4d
-fi
 
-if [[ -f /etc/bash_completion.d/hgd ]]; then
-  source /etc/bash_completion.d/hgd
-fi
 
-export ZSH_PINGME_EXCLUDED_COMMANDS=("vi" "vim" "nano" "emacs" "tmux" "less" "more" "man" "tm" "span" "boq" )
+export ZSH_PINGME_EXCLUDED_COMMANDS=(
+    "vi"
+    "vim"
+    "nano"
+    "emacs"
+    "tmux"
+    "less"
+    "more"
+    "man"
+    "cat"
+    "tail"
+    "ssh"
+    "git"
+    "fzf"
+    "tm"
+)
+
+source "$SHELL_SETUP_DIR/g3.zsh"
 
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.

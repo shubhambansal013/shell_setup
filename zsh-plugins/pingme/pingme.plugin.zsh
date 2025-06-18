@@ -150,9 +150,9 @@ zsh_pingme_precmd() {
             local formatted_duration=$(_zsh_pingme_format_duration "$cmd_duration")
             local telegram_message="Cmd finished \[${formatted_duration}]: ${_zsh_pingme_command_string}"
             _zsh_pingme_send_telegram_notification "${telegram_message}"
+            _zsh_pingme_verbose_print "precmd: Ringing bell."
+            print -n '\a' # Ring the terminal bell.
         fi
-        _zsh_pingme_verbose_print "precmd: Ringing bell."
-        print -n '\a' # Ring the terminal bell.
 
         # Reset variables to avoid re-running for an empty command/prompt.
         _zsh_pingme_verbose_print "precmd: Resetting PingMe variables."

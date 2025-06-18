@@ -80,11 +80,10 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Add wisely, as too many plugins slow down shell startup.
 # plugins=(git)
 plugins=(
-    # other plugins...
+    fzf
     zsh-autosuggestions
     zsh-syntax-highlighting
     pingme
-    # p10k-google # Zhomart's Google Extension for powerlevel10k
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -145,10 +144,6 @@ fi
 if [[ -f /etc/bash_completion.d/hgd ]]; then
   source /etc/bash_completion.d/hgd
 fi
-
-# Enables fzf
-source /usr/share/doc/fzf/examples/key-bindings.zsh
-source /usr/share/doc/fzf/examples/completion.zsh
 
 export ZSH_PINGME_EXCLUDED_COMMANDS=("vi" "vim" "nano" "emacs" "tmux" "less" "more" "man" "tm" "span" "boq" )
 

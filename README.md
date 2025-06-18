@@ -1,40 +1,40 @@
-# Shell Configuration Setup
+# Shell Setup
 
-This script sets up the shell environment by copying configuration files and installing necessary Zsh plugins.
+This directory contains configuration files for the shell environment.
 
-## Prerequisites
+## Zsh (.zshrc)
 
-- Git must be installed.
-- Zsh must be installed and set as the default shell.
-- The script will attempt to install Oh My Zsh if it's not found.
+The `.zshrc` file configures the Zsh shell. It includes:
+- Oh My Zsh setup
+- Theme configuration (powerlevel10k)
+- Plugin management (e.g., `fzf`, `zsh-autosuggestions`, `zsh-syntax-highlighting`)
+- Aliases and custom functions
 
-## Setup
+### fzf Integration
 
-## Setup
+`fzf` (fuzzy finder) is integrated as an Oh My Zsh plugin. 
 
-1.  **Clone the repository or download the files.**
-2.  **Navigate to the `shell_config` directory.**
-3.  **Make the `setup.sh` script executable:**
+To ensure `fzf` works correctly:
+1.  **Install `fzf`**: Follow the official `fzf` installation instructions. You can typically install it by cloning the repository and running its install script:
     ```bash
-    chmod +x setup.sh
+    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+    ~/.fzf/install
     ```
-4.  **Run the setup script:**
-    ```bash
-    ./setup.sh
+2.  **Enable the plugin**: Add `fzf` to the `plugins` array in your `.zshrc` file:
+    ```zsh
+    plugins=(
+        fzf
+        # other plugins...
+        zsh-autosuggestions
+        zsh-syntax-highlighting
+        pingme
+    )
     ```
-5.  **Restart your shell or source your `.zshrc` file:**
-    ```bash
-    source ~/.zshrc
-    ```
 
-## Included Configurations
+## Setup Script (setup.sh)
 
--   **tmux:** Configuration file `tmux.conf` is copied to `~/.tmux.conf`.
--   **zsh:** Configuration file `zshrc` is copied to `~/.zshrc`.
--   **zsh plugins:** Plugins in the `plugins` directory are copied to `~/.oh-my-zsh/custom/plugins/`.
+The `setup.sh` script provides commands and instructions for setting up the shell environment, including `fzf` installation.
 
-## Installed Zsh Plugins and Theme
-
--   **zsh-autosuggestions:** Cloned from [https://github.com/zsh-users/zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions).
--   **zsh-syntax-highlighting:** Cloned from [https://github.com/zsh-users/zsh-syntax-highlighting.git](https://github.com/zsh-users/zsh-syntax-highlighting.git).
--   **Powerlevel10k Theme:** Cloned from [https://github.com/romkatv/powerlevel10k.git](https://github.com/romkatv/powerlevel10k.git). To enable this theme, ensure your `.zshrc` file contains `ZSH_THEME="powerlevel10k/powerlevel10k"`.
+## Other configurations
+- `tmux.conf`: Configuration for tmux.
+- `zsh-plugins/`: Directory for custom zsh plugins (if any).

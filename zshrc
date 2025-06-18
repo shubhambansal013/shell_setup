@@ -123,7 +123,8 @@ zstyle ':completion::complete:*' cache-path ~/.zsh/cache
 zstyle ':completion:*' users root $USER             #fix lag in google3
 autoload -Uz compinit && compinit -i
 
-alias lr="./experimental/users/bansalshubham/logrotate/logrotate.sh"
+export SHELL_SETUP_DIR="$(dirname "$(readlink -f "${(%):-%x}")")"
+alias lr="$SHELL_SETUP_DIR/logrotate/logrotate.sh"
 alias d="tmx2 detach"
 # Function to attach to a tmux session
 tm() {

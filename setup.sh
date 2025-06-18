@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # This script sets up the shell environment.
-# It assumes it is run from the google3/experimental/users/bansalshubham/shell_setup/ directory.
 
 # Define the custom plugins directory for Oh My Zsh
 ZSH_CUSTOM_PLUGINS_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins"
@@ -67,19 +66,7 @@ else
   print_message "zsh-syntax-highlighting plugin is already installed."
 fi
 
-# 6. Install tmux
-# -----------------
-if ! command -v tmux &> /dev/null; then
-  print_message "Installing tmux..."
-  # Add your tmux installation command here, for example:
-  # sudo apt-get update
-  # sudo apt-get install -y tmux
-  echo "Tmux installation instructions depend on the OS. Please install it manually if the script fails."
-else
-  print_message "tmux is already installed."
-fi
-
-# 7. Symlink configuration files
+# 6. Symlink configuration files
 # ------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 

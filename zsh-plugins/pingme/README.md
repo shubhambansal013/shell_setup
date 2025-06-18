@@ -1,63 +1,89 @@
 # PingMe Zsh Plugin
 
-Zsh plugin to ring a terminal bell and send a Telegram notification for long-running commands.
+**PingMe** is a Zsh plugin that provides notifications for long-running commands. When a command's execution time exceeds a configurable duration, PingMe can ring the terminal bell and send a Telegram message.
+
+This is particularly useful for developers, system administrators, and anyone who runs time-consuming tasks in the terminal and wants to be notified upon completion without constantly monitoring the window.
+
+## Features
+
+-   **Execution Time Threshold**: Triggers notifications only for commands that exceed a specified duration.
+-   **Terminal Bell**: Rings the terminal bell for native, immediate feedback.
+-   **Telegram Integration**: Sends a push notification to your phone or desktop via Telegram.
+-   **Command Exclusion**: Allows you to specify commands (e.g., editors, pagers) that should not trigger notifications.
+-   **Verbose Mode**: Provides detailed logging for easy debugging and troubleshooting.
 
 ## Installation
 
-1.  Clone this repository or download the `pingme.plugin.zsh` file.
-2.  Source the `pingme.plugin.zsh` file in your `.zshrc` file:
+The plugin is designed to be used with a Zsh plugin manager or sourced directly. The recommended installation is through the `setup.sh` script in the parent directory, which handles the symlinking automatically.
 
+### Automated Installation (Recommended)
+
+If you are using the broader shell setup from the parent directory, the `setup.sh` script will automatically symlink this plugin to the correct Oh My Zsh custom plugins directory. No manual steps are needed.
+
+### Manual Installation
+
+If you wish to install this plugin manually:
+
+1.  **Clone or Download the Plugin**:
+    Place the `pingme` directory (containing `pingme.plugin.zsh`) into your Zsh plugins directory. For Oh My Zsh, this is typically `~/.oh-my-zsh/custom/plugins/`.
+
+2.  **Activate the Plugin**:
+    Add `pingme` to the `plugins` array in your `.zshrc` file:
     ```zsh
-    source /path/to/pingme.plugin.zsh
+    plugins=(
+        # other plugins...
+        pingme
+    )
+    ```
+
+3.  **Restart Your Shell**:
+    Open a new terminal or source your `.zshrc` to apply the changes:
+    ```zsh
+    source ~/.zshrc
     ```
 
 ## Configuration
 
-You can configure the plugin by setting the following environment variables in your `.zshrc` **before** sourcing the plugin:
+All configuration is done via environment variables. For best results, define these in your `.zshrc` **before** the line that sources your plugins.
 
-*   `ZSH_PINGME_DURATION`: The minimum duration (in seconds) for a command to be considered long-running.
-    Default: `10`
-    Example:
-    ```zsh
-    export ZSH_PINGME_DURATION=30
-    ```
+### General Configuration
 
-*   `ZSH_PINGME_VERBOSE`: Set to `1` to enable verbose logging for debugging.
-    Default: Disabled
-    Example:
-    ```zsh
-    export ZSH_PINGME_VERBOSE=1
-    ```
+-   `ZSH_PINGME_DURATION`: The minimum execution time (in seconds) for a command to trigger a notification.
+    -   **Default**: `20`
+    -   **Example**: `export ZSH_PINGME_DURATION=30`
 
-*   `ZSH_PINGME_EXCLUDED_COMMANDS`: An array of commands that should not trigger notifications. The comparison is done against the base command (e.g., `vim` for `sudo vim`).
-    Default: `(vi vim nano emacs tmux less more man)`
-    Example:
-    ```zsh
-    export ZSH_PINGME_EXCLUDED_COMMANDS=("vi" "nano" "my_custom_tool")
-    ```
+-   `ZSH_PINGME_EXCLUDED_COMMANDS`: An array of command names to ignore. The check is performed on the base command (e.g., `vim` in `sudo vim`).
+    -   **Default**: `(vi vim nano emacs tmux less more man)`
+    -   **Example**: `export ZSH_PINGME_EXCLUDED_COMMANDS=("vi" "nano" "git commit")`
 
 ### Telegram Notifications
 
-To enable Telegram notifications, you also need to set the following environment variables:
+To receive notifications via Telegram, you must provide your bot token and chat ID.
 
-*   `TELEGRAM_BOT_TOKEN`: Your Telegram Bot Token.
-*   `TELEGRAM_CHAT_ID`: Your Telegram Chat ID.
+**Security Note**: To avoid committing secrets to version control, it is strongly recommended to export these variables from a file that is not tracked by Git, such as `~/.zshenv`.
 
-Example:
+-   `TELEGRAM_BOT_TOKEN`: Your Telegram bot's API token.
+-   `TELEGRAM_CHAT_ID`: The chat ID where the bot should send messages.
+
+**Example (in `~/.zshenv`)**:
 ```zsh
 export TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"
 export TELEGRAM_CHAT_ID="YOUR_TELEGRAM_CHAT_ID"
 ```
 
-## How it Works
+### Debugging
 
-The plugin uses Zsh's `preexec` and `precmd` hook functions:
+-   `ZSH_PINGME_VERBOSE`: Set to `1` to enable detailed logging. This is useful for troubleshooting.
+    -   **Default**: Disabled
+    -   **Example**: `export ZSH_PINGME_VERBOSE=1`
 
-*   `preexec`: Executed before a command line is executed. It records the start time and the command string.
-*   `precmd`: Executed before each prompt is displayed (after a command has finished). It calculates the command's duration. If the duration exceeds `ZSH_PINGME_DURATION` and the command is not in `ZSH_PINGME_EXCLUDED_COMMANDS`:
-    *   A Telegram notification is sent (if configured).
-    *   The terminal bell is rung.
+## How It Works
 
-## Troubleshooting
+The plugin leverages Zsh's built-in `preexec` and `precmd` hooks:
 
-If you encounter issues, enable verbose mode (`export ZSH_PINGME_VERBOSE=1`) and check the output in your terminal. This can help identify problems with configuration or script execution.
+1.  **`preexec` Hook**: Before a command is executed, this hook records the start time (`EPOCHSECONDS`) and the command string.
+2.  **`precmd` Hook**: After the command finishes (but before the next prompt is drawn), this hook calculates the total execution time.
+3.  **Evaluation**: It checks if the duration exceeds `ZSH_PINGME_DURATION` and if the command is not in the `ZSH_PINGME_EXCLUDED_COMMANDS` list.
+4.  **Notification**: If the conditions are met, it rings the terminal bell and, if configured, sends a formatted message to your Telegram chat.
+
+This ensures that the monitoring has minimal overhead and integrates seamlessly into the shell's lifecycle.

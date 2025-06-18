@@ -1,40 +1,34 @@
 # Shell Setup
 
-This directory contains configuration files for the shell environment.
+This repository contains the configuration files and an automated setup script for a feature-rich Zsh shell environment.
 
-## Zsh (.zshrc)
+## Quick Start
 
-The `.zshrc` file configures the Zsh shell. It includes:
-- Oh My Zsh setup
-- Theme configuration (powerlevel10k)
-- Plugin management (e.g., `fzf`, `zsh-autosuggestions`, `zsh-syntax-highlighting`)
-- Aliases and custom functions
+To set up your shell environment, simply run the setup script:
 
-### fzf Integration
+```bash
+./setup.sh
+```
 
-`fzf` (fuzzy finder) is integrated as an Oh My Zsh plugin. 
+The script will handle the installation of all necessary tools and the symlinking of configuration files.
 
-To ensure `fzf` works correctly:
-1.  **Install `fzf`**: Follow the official `fzf` installation instructions. You can typically install it by cloning the repository and running its install script:
-    ```bash
-    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-    ~/.fzf/install
-    ```
-2.  **Enable the plugin**: Add `fzf` to the `plugins` array in your `.zshrc` file:
-    ```zsh
-    plugins=(
-        fzf
-        # other plugins...
-        zsh-autosuggestions
-        zsh-syntax-highlighting
-        pingme
-    )
-    ```
+## What's Included?
 
-## Setup Script (setup.sh)
+The `setup.sh` script automates the installation and configuration of the following components:
 
-The `setup.sh` script provides commands and instructions for setting up the shell environment, including `fzf` installation.
+-   **[Oh My Zsh](https://ohmyz.sh/)**: An open-source, community-driven framework for managing your Zsh configuration.
+-   **[Powerlevel10k](https://github.com/romkatv/powerlevel10k)**: A fast and flexible theme for Zsh.
+-   **[fzf](https://github.com/junegunn/fzf)**: A command-line fuzzy finder for quick file and command history search.
+-   **Zsh Plugins**:
+    -   **[zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)**: Suggests commands as you type based on history and completions.
+    -   **[zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)**: Provides syntax highlighting for the command line.
+    -   **Custom `pingme` plugin**: A local plugin for notifications.
 
-## Other configurations
-- `tmux.conf`: Configuration for tmux.
-- `zsh-plugins/`: Directory for custom zsh plugins (if any).
+## Configuration Files
+
+The setup script will automatically symlink the following configuration files to your home directory:
+
+-   `.zshrc`: The main configuration file for the Zsh shell. It loads Oh My Zsh, the Powerlevel10k theme, all plugins, and custom aliases.
+-   `.tmux.conf`: The configuration file for `tmux`.
+
+The script also manages custom Zsh plugins located in the `zsh-plugins/` directory.

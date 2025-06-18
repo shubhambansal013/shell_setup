@@ -138,22 +138,13 @@ fi
 
 
 
-export ZSH_PINGME_EXCLUDED_COMMANDS=(
-    "vi"
-    "vim"
-    "nano"
-    "emacs"
-    "tmux"
-    "less"
-    "more"
-    "man"
-    "cat"
-    "tail"
-    "ssh"
-    "git"
-    "fzf"
-    "tm"
-)
+# Customize the list of pingme excluded commands.
+# Add commands to the list.
+ZSH_PINGME_EXCLUDED_COMMANDS+=("tm")
+
+# To remove a command from the excluded list, for example `tail`, uncomment the
+# following line:
+# ZSH_PINGME_EXCLUDED_COMMANDS[(I)tail]=()
 
 source "$SHELL_SETUP_DIR/g3.zsh"
 

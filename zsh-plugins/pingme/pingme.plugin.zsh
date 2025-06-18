@@ -17,7 +17,21 @@
 # ZSH_PINGME_EXCLUDED_COMMANDS=("vi" "nano" "my_custom_tool")
 # Initialize with defaults only if not already set by the user.
 if (( ! ${+ZSH_PINGME_EXCLUDED_COMMANDS} )); then
-  ZSH_PINGME_EXCLUDED_COMMANDS=(vi vim nano emacs tmux less more man)
+    ZSH_PINGME_EXCLUDED_COMMANDS=(
+    vi
+    vim
+    nano
+    emacs
+    tmux
+    less
+    more
+    man
+    cat
+    tail
+    ssh
+    git
+    fzf
+  )
 fi
 
 # For Telegram notifications, you need to set the following environment variables:

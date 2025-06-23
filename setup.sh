@@ -99,7 +99,23 @@ if [ -f "$TMUX_CONF_SOURCE" ]; then
     echo ".tmux.conf symlinked to $TMUX_CONF_TARGET"
   fi
 else
-  echo "ERROR: $TMUX_CONF_SOURCE not found. Skipping."
+  echo "WARN: $TMUX_CONF_SOURCE not found. Skipping."
+fi
+
+# Symlink .g3.zsh
+G3_SOURCE="$SCRIPT_DIR/g3.zsh"
+G3_TARGET="$HOME/.g3.zsh"
+if [ -f "$G3_SOURCE" ]; then
+  print_message "Symlinking .g3.zsh..."
+  if [ -L "$G3_TARGET" ] && [ "$(readlink "$G3_TARGET")" = "$G3_SOURCE" ]; then
+    echo ".g3.zsh is already correctly symlinked."
+  else
+    rm -f "$G3_TARGET" # Remove existing file/symlink
+    ln -s "$G3_SOURCE" "$G3_TARGET"
+    echo ".g3.zsh symlinked to $G3_TARGET"
+  fi
+else
+  echo "WARN: $G3_SOURCE not found. Skipping."
 fi
 
 # 7. Install custom Pingme plugin

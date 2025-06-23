@@ -66,20 +66,29 @@ _zsh_pingme_extract_base_command() {
     if [[ ${#parts[@]} -eq 0 ]]; then
         _zsh_pingme_verbose_print "extract_base_command: Command string was empty or all spaces."
         base_command=""
-    elif [[ "${parts[1]}" == "sudo" && ${#parts[@]} -gt 1 ]]; then
-        base_command="${parts[2]}"
-    elif [[ "${parts[1]}" == "env" && ${#parts[@]} -gt 1 ]]; then
-        local cmd_idx=2
-        while [[ $cmd_idx -le ${#parts[@]} && ( "${parts[$cmd_idx]}" == *=* || "${parts[$cmd_idx]}" == -* ) ]]; do
+    else
+        local cmd_idx=1
+        while [[ $cmd_idx -lt ${#parts[@]} && "${parts[$cmd_idx]}" == *=* ]]; do
             ((cmd_idx++))
         done
-        if [[ $cmd_idx -le ${#parts[@]} ]]; then
-            base_command="${parts[$cmd_idx]}"
+
+        local first_word="${parts[$cmd_idx]}"
+
+        if [[ "$first_word" == "sudo" && ${#parts[@]} -gt $cmd_idx ]]; then
+            base_command="${parts[$((cmd_idx+1))]}"
+        elif [[ "$first_word" == "env" && ${#parts[@]} -gt $cmd_idx ]]; then
+            local env_cmd_idx=$((cmd_idx+1))
+            while [[ $env_cmd_idx -le ${#parts[@]} && ( "${parts[$env_cmd_idx]}" == *=* || "${parts[$env_cmd_idx]}" == -* ) ]]; do
+                ((env_cmd_idx++))
+            done
+            if [[ $env_cmd_idx -le ${#parts[@]} ]]; then
+                base_command="${parts[$env_cmd_idx]}"
+            else
+                base_command="env"
+            fi
         else
-            base_command="env"
+            base_command="$first_word"
         fi
-    else
-        base_command="${parts[1]}"
     fi
 
     if [[ -n "$base_command" ]]; then
@@ -92,21 +101,19 @@ _zsh_pingme_extract_base_command() {
 
 # Formats seconds into a string like: 1h 23m 45s or 45m 0s or 30s
 _zsh_pingme_format_duration() {
-    local total_seconds=$1
-    local hours=$((total_seconds / 3600))
-    local minutes=$(( (total_seconds % 3600) / 60 ))
-    local seconds=$((total_seconds % 60))
-    local formatted_duration=""
+    local -i total_seconds=$1
+    if (( total_seconds < 0 )); then total_seconds=0; fi
+    local -i hours=$((total_seconds / 3600))
+    local -i minutes=$(( (total_seconds % 3600) / 60 ))
+    local -i seconds=$((total_seconds % 60))
 
     if (( hours > 0 )); then
-        formatted_duration="${hours}h "
+        echo "${hours}h ${minutes}m ${seconds}s"
+    elif (( minutes > 0 )); then
+        echo "${minutes}m ${seconds}s"
+    else
+        echo "${seconds}s"
     fi
-    if (( minutes > 0 )); then
-        formatted_duration="${formatted_duration}${minutes}m "
-    fi
-    formatted_duration="${formatted_duration}${seconds}s"
-
-    echo "$formatted_duration"
 }
 
 # --- Globals ---
@@ -127,7 +134,7 @@ _zsh_pingme_send_telegram_notification() {
         _zsh_pingme_verbose_print "telegram: Token or Chat ID not set. Notification disabled."
         return 1
     fi
-    if ! curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=${message_text}" --data "parse_mode=Markdown" > /dev/null; then
+    if ! curl -s --connect-timeout 5 --max-time 10 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=${message_text}" --data "parse_mode=Markdown" > /dev/null; then
         _zsh_pingme_verbose_print "telegram: curl command failed to send notification."
         return 1
     fi

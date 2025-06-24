@@ -9,8 +9,10 @@ This is particularly useful for developers, system administrators, and anyone wh
 -   **Execution Time Threshold**: Triggers notifications only for commands that exceed a specified duration.
 -   **Terminal Bell**: Rings the terminal bell for native, immediate feedback.
 -   **Telegram Integration**: Sends a push notification to your phone or desktop via Telegram.
+-   **Exit Code and Status Icon**: The Telegram notification includes the command's exit code and a status icon (✅ for success, ❌ for failure).
 -   **Command Exclusion**: Allows you to specify commands (e.g., editors, pagers) that should not trigger notifications.
 -   **Verbose Mode**: Provides detailed logging for easy debugging and troubleshooting.
+-   **Command Truncation**: Long commands are truncated to 1024 characters to avoid excessively long messages.
 
 ## Installation
 
@@ -48,7 +50,7 @@ Configuration is straightforward. For basic settings, you can define variables i
 
 ### Interactive Configuration (Recommended for Telegram)
 
-To get started with Telegram notifications, run the interactive setup script. This is the easiest and most secure way to configure your credentials.
+To get started with Telegram notifications, run the interactive configuration script (`pingme_configure.zsh`). This is the easiest and most secure way to configure your credentials. This script is not the plugin itself, but a helper script to set up the plugin.
 
 1.  **Source the Configuration Script**:
     From your terminal, run the following command. Make sure to replace `/path/to/` with the actual path to the `pingme` plugin directory.
@@ -104,4 +106,4 @@ The plugin leverages Zsh's built-in `preexec` and `precmd` hooks:
 3.  **Evaluation**: It checks if the duration exceeds `ZSH_PINGME_DURATION` and if the command is not in the `ZSH_PINGME_EXCLUDED_COMMANDS` list.
 4.  **Notification**: If the conditions are met, it rings the terminal bell and, if configured, sends a formatted message to your Telegram chat.
 
-This ensures that the monitoring has minimal overhead and integrates seamlessly into the shell's lifecycle.
+This ensures that the monitoring has minimal overhead and integrates seamlessly into the shell's lifecycle. The Telegram message includes the command's exit code and a status icon (✅ for success, ❌ for failure). Long commands are truncated to 1024 characters to avoid excessively long messages.

@@ -1,11 +1,19 @@
 # Zsh plugin to ring a terminal bell and send a Telegram notification for
 # long-running commands.
 #
-# To set up Telegram notifications, source the interactive configuration script:
+# To set up Telegram notifications, you need to run the interactive configuration
+# script:
 #   source /path/to/pingme_configure.zsh
 #
-# This will guide you through creating a ~/.pingme.env file with your
-# Telegram credentials. The plugin will automatically source this file if it exists.
+# This script will guide you through creating a ~/.pingme.env file with your
+# Telegram credentials. The plugin will automatically source this file if it
+# exists.
+#
+# The Telegram notification includes:
+#   - A status icon: ✅ for success, ❌ for failure.
+#   - The command's exit code.
+#   - The command string (truncated to 1024 characters to avoid excessively
+#     long messages).
 
 # Source environment variables from ~/.pingme.env if it exists.
 if [[ -f "${ZDOTDIR:-$HOME}/.pingme.env" ]]; then
@@ -21,6 +29,9 @@ fi
 # Set to enable verbose mode.
 # export ZSH_PINGME_VERBOSE=1
 : "${ZSH_PINGME_VERBOSE:=}"
+
+# The pingme_configure.zsh script is for interactive configuration and is not
+# the plugin itself.
 
 # --- Excluded Commands ---
 # Define a list of commands that should not trigger notifications.
@@ -56,45 +67,35 @@ _zsh_pingme_verbose_print() {
     fi
 }
 
+# Extracts the base command from a full command string, ignoring sudo, env,
+# variable assignments, and options.
 _zsh_pingme_extract_base_command() {
     local full_command_string="$1"
     local base_command
     local parts
-    # zsh array splitting from string by spaces.
+    local i=0;
+    # Split the command string into parts by spaces.
     parts=(${(s: :)full_command_string})
 
     if [[ ${#parts[@]} -eq 0 ]]; then
         _zsh_pingme_verbose_print "extract_base_command: Command string was empty or all spaces."
         base_command=""
     else
-        local cmd_idx=1
-        while [[ $cmd_idx -lt ${#parts[@]} && "${parts[$cmd_idx]}" == *=* ]]; do
-            ((cmd_idx++))
-        done
-
-        local first_word="${parts[$cmd_idx]}"
-
-        if [[ "$first_word" == "sudo" && ${#parts[@]} -gt $cmd_idx ]]; then
-            base_command="${parts[$((cmd_idx+1))]}"
-        elif [[ "$first_word" == "env" && ${#parts[@]} -gt $cmd_idx ]]; then
-            local env_cmd_idx=$((cmd_idx+1))
-            while [[ $env_cmd_idx -le ${#parts[@]} && ( "${parts[$env_cmd_idx]}" == *=* || "${parts[$env_cmd_idx]}" == -* ) ]]; do
-                ((env_cmd_idx++))
-            done
-            if [[ $env_cmd_idx -le ${#parts[@]} ]]; then
-                base_command="${parts[$env_cmd_idx]}"
+        while (( i < ${#parts[@]} )); do
+            local current_part="${parts[$i]}"
+            if [[ "$current_part" == "sudo" || "$current_part" == "env" || "$current_part" == *=* || "$current_part" == -* ]]; then
+                ((i++))
+                continue
             else
-                base_command="env"
+                base_command="$current_part"
+                break
             fi
-        else
-            base_command="$first_word"
-        fi
+        done
     fi
 
     if [[ -n "$base_command" ]]; then
         base_command="${base_command##*/}"
     fi
-    
     _zsh_pingme_verbose_print "extract_base_command: Extracted base command: \'${base_command}\' from \'${full_command_string}\'"
     echo "$base_command"
 }
@@ -118,9 +119,11 @@ _zsh_pingme_format_duration() {
 
 # --- Globals ---
 # Start time (in EPOCHSECONDS) of the command being executed.
-_zsh_pingme_start_time=
+    _zsh_pingme_start_time=
 # Command string being executed.
 _zsh_pingme_command_string=
+# Exit status of the last command.
+_zsh_pingme_exit_status=
 
 # --- Plugin Loaded Message ---
 _zsh_pingme_verbose_print "Plugin loaded. Duration: ${ZSH_PINGME_DURATION}s, Verbose: ${ZSH_PINGME_VERBOSE:-disabled}"
@@ -134,66 +137,105 @@ _zsh_pingme_send_telegram_notification() {
         _zsh_pingme_verbose_print "telegram: Token or Chat ID not set. Notification disabled."
         return 1
     fi
-    if ! curl -s --connect-timeout 5 --max-time 10 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=${message_text}" --data "parse_mode=Markdown" > /dev/null; then
-        _zsh_pingme_verbose_print "telegram: curl command failed to send notification."
+
+    local response
+    response=$(curl -s --connect-timeout 5 --max-time 10 -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" --data-urlencode "text=${message_text}" --data "parse_mode=Markdown")
+    local curl_exit_code=$?
+
+    if [[ $curl_exit_code -ne 0 ]]; then
+        _zsh_pingme_verbose_print "telegram: curl command failed with exit code ${curl_exit_code}."
+        if [[ -n "$response" ]]; then
+            _zsh_pingme_verbose_print "telegram: curl response: '$response'"
+        fi
         return 1
     fi
-    _zsh_pingme_verbose_print "telegram: Notification sent successfully via curl."
+
+    # Telegram API returns a JSON with "ok":true on success.
+    # A simple string check is sufficient and avoids a dependency on a JSON parser.
+    if [[ "$response" == *"\"ok\":true"* ]]; then
+        _zsh_pingme_verbose_print "telegram: Notification sent successfully via curl."
+    else
+        _zsh_pingme_verbose_print "telegram: API call successful, but notification failed. Response: $response"
+        return 1
+    fi
+
     return 0
 }
 
-# Executed before a command line is executed.
+# Executed before a command line is executed, to record the start time and the
+# command string.
 zsh_pingme_preexec() {
     _zsh_pingme_start_time=$EPOCHSECONDS
     _zsh_pingme_command_string="$1"
     _zsh_pingme_verbose_print "preexec: Recording command: '$1', start_time: $EPOCHSECONDS"
 }
 
-# Executed before each prompt is displayed (after a command has finished).
+# Executed before each prompt is displayed (after a command has finished), to
+# check if the command took long enough and send a notification if needed.
 zsh_pingme_precmd() {
+    # Capture the exit status of the command.
+    _zsh_pingme_exit_status=$?
     _zsh_pingme_verbose_print "precmd: Entered. Monitored command: '${_zsh_pingme_command_string}', start_time: ${_zsh_pingme_start_time}"
+
+    # Exit early if there is no command to process.
+    if [[ -z "$_zsh_pingme_command_string" || -z "$_zsh_pingme_start_time" ]] ; then
+        _zsh_pingme_verbose_print "precmd: No command to process. Skipping."
+        # Reset variables and exit.
+        unset _zsh_pingme_start_time
+        unset _zsh_pingme_command_string
+        unset _zsh_pingme_exit_status
+        return
+    fi
 
     local base_command
     base_command=$(_zsh_pingme_extract_base_command "$_zsh_pingme_command_string")
     _zsh_pingme_verbose_print "precmd: Base command: '${base_command}'"
 
     # Check if the base command is in the excluded list.
-    if (( ${#ZSH_PINGME_EXCLUDED_COMMANDS[@]} > 0 )); then
+    if (( ${#ZSH_PINGME_EXCLUDED_COMMANDS[@]} > 0 )) ; then
         for excluded_command in "${ZSH_PINGME_EXCLUDED_COMMANDS[@]}"; do
             if [[ "$base_command" == "$excluded_command" ]]; then
                 _zsh_pingme_verbose_print "precmd: Command '${base_command}' is in the excluded list. Skipping."
                 # Reset variables and exit.
-                _zsh_pingme_start_time=
-                _zsh_pingme_command_string=
+                unset _zsh_pingme_start_time
+                unset _zsh_pingme_command_string
+                unset _zsh_pingme_exit_status
                 return
             fi
         done
     fi
 
-    if [[ -n "$_zsh_pingme_start_time" && -n "$_zsh_pingme_command_string" ]]; then
-        local cmd_end_time=$EPOCHSECONDS
-        local cmd_duration=$((cmd_end_time - _zsh_pingme_start_time))
-        _zsh_pingme_verbose_print "precmd: Processing command: '${_zsh_pingme_command_string}'. Duration: ${cmd_duration}s. Threshold: ${ZSH_PINGME_DURATION}s."
+    local cmd_end_time=$EPOCHSECONDS
+    local cmd_duration=$((cmd_end_time - _zsh_pingme_start_time))
+    _zsh_pingme_verbose_print "precmd: Processing command: '${_zsh_pingme_command_string}'. Duration: ${cmd_duration}s. Threshold: ${ZSH_PINGME_DURATION}s."
 
-        # Send a notification if the command duration exceeds the threshold.
-        if (( cmd_duration >= ZSH_PINGME_DURATION )); then
-            _zsh_pingme_verbose_print "precmd: Command met threshold. Sending Telegram notification."
-            
-            local formatted_duration=$(_zsh_pingme_format_duration "$cmd_duration")
-            local telegram_message="Cmd finished \[${formatted_duration}]: ${_zsh_pingme_command_string}"
-            _zsh_pingme_send_telegram_notification "${telegram_message}"
-            _zsh_pingme_verbose_print "precmd: Ringing bell."
-            print -n '\a' # Ring the terminal bell.
+    # Send a notification if the command duration exceeds the threshold.
+    if (( cmd_duration >= ZSH_PINGME_DURATION )) ; then
+        _zsh_pingme_verbose_print "precmd: Command met threshold. Sending Telegram notification."
+
+        local formatted_duration=$(_zsh_pingme_format_duration "$cmd_duration")
+        local status_icon="✅"
+        if [[ $_zsh_pingme_exit_status -ne 0 ]] ; then
+            status_icon="❌"
         fi
-
-        # Reset variables to avoid re-running for an empty command/prompt.
-        _zsh_pingme_verbose_print "precmd: Resetting PingMe variables."
-        _zsh_pingme_start_time=
-        _zsh_pingme_command_string=
+        local command_string_for_telegram="${_zsh_pingme_command_string}"
+        if [[ ${#command_string_for_telegram} -gt 1024 ]]; then
+            command_string_for_telegram="${command_string_for_telegram:0:1021}..."
+        fi
+        local telegram_message; printf -v telegram_message '%s Cmd finished in \[%s] with exit code [%s]:\n```\n%s\n```' "${status_icon}" "${formatted_duration}" "$_zsh_pingme_exit_status" "${command_string_for_telegram}"
+        _zsh_pingme_send_telegram_notification "${telegram_message}"
+        _zsh_pingme_verbose_print "precmd: Ringing bell."
+        print -n '\a' # Ring the terminal bell.
     fi
+
+    # Reset variables to avoid re-running for an empty command/prompt.
+    _zsh_pingme_verbose_print "precmd: Resetting PingMe variables."
+    unset _zsh_pingme_start_time
+    unset _zsh_pingme_command_string
+    unset _zsh_pingme_exit_status
 }
 
-# --- Setup ---
+# --- Setup: Add hooks to Zsh ---
 
 # Ensure the add-zsh-hook function is available.
 autoload -Uz add-zsh-hook
@@ -202,5 +244,7 @@ autoload -Uz add-zsh-hook
 add-zsh-hook preexec zsh_pingme_preexec
 add-zsh-hook precmd zsh_pingme_precmd
 
-# Ensure the start time variable is initially unset.
-unset _zsh_pingme_start_time _zsh_pingme_command_string
+# Ensure the global variables are initially reset.
+unset _zsh_pingme_start_time
+unset _zsh_pingme_command_string
+unset _zsh_pingme_exit_status

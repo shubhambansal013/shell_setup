@@ -222,7 +222,7 @@ zsh_pingme_precmd() {
         if [[ ${#command_string_for_telegram} -gt 1024 ]]; then
             command_string_for_telegram="${command_string_for_telegram:0:1021}..."
         fi
-        local telegram_message; printf -v telegram_message '%s Cmd finished in \[%s] with exit code [%s]:\n```\n%s\n```' "${status_icon}" "${formatted_duration}" "$_zsh_pingme_exit_status" "${command_string_for_telegram}"
+        local telegram_message; printf -v telegram_message '%s Command finished in `%s` (exit code: `%s`):\n```\n%s\n```' "${status_icon}" "${formatted_duration}" "$_zsh_pingme_exit_status" "${command_string_for_telegram}"
         _zsh_pingme_send_telegram_notification "${telegram_message}"
         _zsh_pingme_verbose_print "precmd: Ringing bell."
         print -n '\a' # Ring the terminal bell.

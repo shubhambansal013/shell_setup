@@ -69,29 +69,27 @@ _zsh_pingme_verbose_print() {
 
 # Extracts the base command from a full command string, ignoring sudo, env,
 # variable assignments, and options.
+# Examples:
+#   "git clone ..." -> "git"
+#   "sudo apt-get update" -> "apt-get"
+#   "env FOO=bar /path/to/binary --flag" -> "binary"
+#   "/usr/bin/python3 my_script.py" -> "python3"
 _zsh_pingme_extract_base_command() {
     local full_command_string="$1"
     local base_command
-    local parts
-    local i=0;
+    local part
     # Split the command string into parts by spaces.
-    parts=(${(s: :)full_command_string})
-
-    if [[ ${#parts[@]} -eq 0 ]]; then
-        _zsh_pingme_verbose_print "extract_base_command: Command string was empty or all spaces."
-        base_command=""
-    else
-        while (( i < ${#parts[@]} )); do
-            local current_part="${parts[$i]}"
-            if [[ "$current_part" == "sudo" || "$current_part" == "env" || "$current_part" == *=* || "$current_part" == -* ]]; then
-                ((i++))
+    for part in ${(s: :)full_command_string}; do
+        case "$part" in
+            sudo|env|*=*|-*)
                 continue
-            else
-                base_command="$current_part"
+                ;;
+            *)
+                base_command="$part"
                 break
-            fi
-        done
-    fi
+                ;;
+        esac
+    done
 
     if [[ -n "$base_command" ]]; then
         base_command="${base_command##*/}"

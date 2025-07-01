@@ -131,19 +131,21 @@ tm() {
   tmx2 new -A -s "$session_name"
 }
 
-# Alias to run the PingMe interactive configuration
-alias pingme_configure="source \"${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/pingme/pingme_configure.zsh\""
-
 # Automatically attach to the session when SSHing
 if [[ $- =~ i ]] && [[ -z "$TMUX" ]] && [[ -n "$SSH_TTY" ]]; then
   tm
 fi
 
-
+#Zsh PingMe configure
+# Alias to run the PingMe interactive configuration
+alias pingme_configure="source \"${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/pingme/pingme_configure.zsh\""
 
 # Customize the list of pingme excluded commands.
 # Add commands to the list.
-ZSH_PINGME_EXCLUDED_COMMANDS+=("tm")
+ZSH_PINGME_EXCLUDED_COMMANDS+=(
+  "tm"
+  "gemini"
+  )
 
 # To remove a command from the excluded list, for example `tail`, uncomment the
 # following line:

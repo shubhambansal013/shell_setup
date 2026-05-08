@@ -86,7 +86,7 @@ plugins=(
     pingme
 )
 
-source $ZSH/oh-my-zsh.sh
+[[ -f "$ZSH/oh-my-zsh.sh" ]] && source "$ZSH/oh-my-zsh.sh"
 
 # User configuration
 
@@ -124,11 +124,11 @@ autoload -Uz compinit && compinit -i
 
 export SHELL_SETUP_DIR="$(dirname "$(readlink -f "${(%):-%x}")")"
 alias lr="$SHELL_SETUP_DIR/logrotate/logrotate.sh"
-alias d="tmx2 detach"
+alias d="tmux detach"
 # Function to attach to a tmux session
 tm() {
   local session_name="${1:-Ram}" # Use a default name if none is provided
-  tmx2 new -A -s "$session_name"
+  tmux new -A -s "$session_name"
 }
 
 # Automatically attach to the session when SSHing
@@ -151,7 +151,7 @@ ZSH_PINGME_EXCLUDED_COMMANDS+=(
 # following line:
 # ZSH_PINGME_EXCLUDED_COMMANDS[(I)tail]=()
 
-source "$SHELL_SETUP_DIR/g3.zsh"
+[[ -f "$SHELL_SETUP_DIR/g3.zsh" ]] && source "$SHELL_SETUP_DIR/g3.zsh"
 
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.

@@ -24,5 +24,7 @@ ZSH_PINGME_EXCLUDED_COMMANDS+=(
 )
 
 # Logs dir
-mkdir -p "/usr/local/google/home/$USER/mylogs"
-export MYLOGS="/usr/local/google/home/$USER/mylogs"
+if [[ -w "/usr/local/google" ]]; then
+  mkdir -p "/usr/local/google/home/$USER/mylogs"
+  export MYLOGS="/usr/local/google/home/$USER/mylogs"
+fi

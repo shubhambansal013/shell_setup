@@ -1,3 +1,6 @@
+# Only proceed if we are in a Zsh session.
+[[ -n "$ZSH_VERSION" ]] || return 0
+
 # Google-specific shell configuration
 
 # Fixes completion lag in google3.

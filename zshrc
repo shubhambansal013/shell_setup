@@ -94,6 +94,9 @@ plugins=(
 
 [[ -f "$ZSH/oh-my-zsh.sh" ]] && source "$ZSH/oh-my-zsh.sh"
 
+# fzf initialization
+[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"

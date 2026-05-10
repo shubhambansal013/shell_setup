@@ -58,10 +58,10 @@ if ! command -v fzf &> /dev/null; then
   if prompt_user "Do you want to install fzf?"; then
     if [ ! -d "$HOME/.fzf" ]; then
       git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-      ~/.fzf/install --all --no-zsh # Installs fzf and key bindings/completions
+      ~/.fzf/install --all --no-update-rc # Installs fzf and key bindings/completions
     else
       print_message "fzf directory already exists. Running install script..."
-      ~/.fzf/install --all --no-zsh
+      ~/.fzf/install --all --no-update-rc
     fi
   else
     print_message "Skipping fzf installation."

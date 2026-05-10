@@ -1,5 +1,8 @@
 # Only proceed if we are in a Zsh session.
-[[ -n "$ZSH_VERSION" ]] || return 0
+if [ -z "$ZSH_VERSION" ]; then
+  return 0 2>/dev/null
+  exec true
+fi
 
 # Google-specific shell configuration
 

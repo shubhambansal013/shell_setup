@@ -1,3 +1,9 @@
+# Only proceed if we are in a Zsh session.
+if [ -z "$ZSH_VERSION" ]; then
+  return 0 2>/dev/null
+  exec true
+fi
+
 # Zsh plugin to ring a terminal bell and send a Telegram notification for
 # long-running commands.
 #

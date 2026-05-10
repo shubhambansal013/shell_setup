@@ -1,11 +1,14 @@
 # Only proceed if we are in a Zsh session.
-[[ -n "$ZSH_VERSION" ]] || return 0
+if [ -z "$ZSH_VERSION" ]; then
+  return 0 2>/dev/null
+  exec true
+fi
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${USER:-$(whoami)}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${USER:-$(whoami)}.zsh"
 fi
 
 # If you come from bash you might have to change your $PATH.
@@ -125,8 +128,10 @@ zstyle ':completion::complete:*' use-cache 1        #enables completion caching
 zstyle ':completion::complete:*' cache-path ~/.zsh/cache
 autoload -Uz compinit && compinit -i
 
-export SHELL_SETUP_DIR="$(dirname "$(readlink -f "${(%):-%x}")")"
-alias lr="$SHELL_SETUP_DIR/logrotate/logrotate.sh"
+if [ -n "$ZSH_VERSION" ]; then
+  export SHELL_SETUP_DIR="$(dirname "$(readlink -f "${(%):-%x}")")"
+fi
+alias lr="${SHELL_SETUP_DIR:-.}/logrotate/logrotate.sh"
 alias d="tmux detach"
 # Function to attach to a tmux session
 tm() {

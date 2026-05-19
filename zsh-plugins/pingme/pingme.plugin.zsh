@@ -4,6 +4,9 @@ if [ -z "$ZSH_VERSION" ]; then
   exec true
 fi
 
+# Ensure $EPOCHSECONDS is available.
+zmodload zsh/datetime
+
 # Zsh plugin to ring a terminal bell and send a Telegram notification for
 # long-running commands.
 #
@@ -83,11 +86,24 @@ _zsh_pingme_verbose_print() {
 _zsh_pingme_extract_base_command() {
     local full_command_string="$1"
     local base_command
-    local part
-    # Split the command string into parts by spaces.
-    for part in ${(s: :)full_command_string}; do
+    local skip_next=false
+    # Use (z) to split the command string into shell words correctly.
+    for part in ${(z)full_command_string}; do
+        if $skip_next; then
+            skip_next=false
+            continue
+        fi
+
         case "$part" in
-            sudo|env|*=*|-*)
+            sudo|env|*=* )
+                continue
+                ;;
+            -u|-g|-p|-C|-r|-t|-U)
+                # sudo options that take a mandatory argument.
+                skip_next=true
+                continue
+                ;;
+            -*)
                 continue
                 ;;
             *)

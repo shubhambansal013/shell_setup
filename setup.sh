@@ -14,6 +14,12 @@ print_message() {
 
 # Helper function to prompt the user for confirmation
 prompt_user() {
+  # If the terminal is not interactive, assume 'yes'
+  if [[ ! -t 0 ]]; then
+    echo "Non-interactive shell detected. Assuming 'yes' for: $1"
+    return 0
+  fi
+
   while true; do
     read -p "$1 [yes/no]: " response
     case "$response" in

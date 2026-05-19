@@ -1,10 +1,3 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
 # Only proceed if we are in a Zsh session.
 if [ -z "$ZSH_VERSION" ]; then
   return 0 2>/dev/null
@@ -95,8 +88,8 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 plugins=(
     fzf
     zsh-autosuggestions
-    zsh-syntax-highlighting
     pingme
+    zsh-syntax-highlighting
 )
 
 [[ -f "$ZSH/oh-my-zsh.sh" ]] && source "$ZSH/oh-my-zsh.sh"
@@ -133,10 +126,6 @@ plugins=(
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-zstyle ':completion:*' menu yes select
-zstyle ':completion::complete:*' use-cache 1        #enables completion caching
-zstyle ':completion::complete:*' cache-path ~/.zsh/cache
-autoload -Uz compinit && compinit -i
 
 if [ -n "$ZSH_VERSION" ]; then
   export SHELL_SETUP_DIR="$(dirname "$(readlink -f "${(%):-%x}")")"
@@ -174,5 +163,6 @@ ZSH_PINGME_EXCLUDED_COMMANDS+=(
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-export GOG_KEYRING_PASSWORD='shubham13'
-source ~/powerlevel10k/powerlevel10k.zsh-theme
+
+# GOG Keyring password
+[[ -f ~/.gog_credentials ]] && source ~/.gog_credentials

@@ -134,7 +134,7 @@ alias lr="${SHELL_SETUP_DIR:-.}/logrotate/logrotate.sh"
 alias d="tmux detach"
 # Function to attach to a tmux session
 tm() {
-  local session_name="${1:-Ram}" # Use a default name if none is provided
+  local session_name="${1:-alpha}" # Use a default name if none is provided
   tmux new -A -s "$session_name"
 }
 
